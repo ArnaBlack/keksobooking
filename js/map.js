@@ -62,6 +62,11 @@ var TYPES_MAP = {
   bungalo: 'Бунгало'
 };
 
+var template = document.querySelector('template');
+var map = document.querySelector('.map');
+var mapPins = map.querySelector('.map__pins');
+var mapFilters = map.querySelector('.map__filters-container');
+
 //функция генерации случайных значений
 var generateRandomData = function (min, max) {
  return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -78,18 +83,17 @@ var shufflePhotos = function (arr){
 		copyArr[i] = temp;
 	}
 	return copyArr;
-}
+};
 //функция обрезки массива FEATURES
 var cutFeatures = function (arr) {
 	return arr.slice(0, generateRandomData(1,arr.length));
-}
-
+};
 //функция генерации случайных данных
 var generateAds = function () {
 	var OFFERS= [];
 	for (var i = 0; i < ADS_DATA.QUANTITY; i++) {
-		var x = generateRandomData(ADS_DATA.xRangeFrom, ADS_DATA.xRangeTo)- (PIN_SIZE.WIDTH / 2);
-		var y = generateRandomData(ADS_DATA.yRangeFrom, ADS_DATA.yRangeTo)  - PIN_SIZE.HEIGHT;
+		var x = generateRandomData(0, map.clientWidth + 1);
+		var y = generateRandomData(ADS_DATA.yRangeFrom, ADS_DATA.yRangeTo + 1);
 		OFFERS.push({
 			author: {
 				avatar: 'img/avatars/user' +  (i < 10 ? '0' : '') + (i + 1) + '.png'
@@ -133,7 +137,7 @@ var createFeaturesFragment = function (adData, template) {
   };
 
   return featuresElements;
-}
+};
 // огтрисовка фото
 var createPhotoFragment = function (adData, template) {
   var photoElements = template.querySelector('.popup__photos');
@@ -148,10 +152,9 @@ var createPhotoFragment = function (adData, template) {
 
 return photoElements;
 
-}
+};
 // создание  одного обьявления
 var getAdTemplate = function (ad, template) {
-	var template = document.querySelector('template');
   var adTemplate = template.content.querySelector('.map__card');
 	var adElement = adTemplate.cloneNode(true);
 	adElement.querySelector('.popup__title').textContent = ad.offer.title;
@@ -164,30 +167,31 @@ var getAdTemplate = function (ad, template) {
   createPhotoFragment(ad,adElement);
   adElement.querySelector('.popup__description').textContent = ad.offer.description;
   adElement.querySelector('.popup__avatar').src = ad.author.avatar;
-
 	return adElement;
-}
+};
 //создание одной метки
 var getPin = function (ad, template) {
   var pinTemplate = template.content.querySelector('.map__pin');
   var pinElement = pinTemplate.cloneNode(true);
-
-  pinElement.style ='left:' + ad.location.x + 'px; top:' + ad.location.y + 'px;';
+  var pinX = ad.location.x - PIN_SIZE.WIDTH / 2;
+  var pinY =  ad.location.y  - PIN_SIZE.HEIGHT;
+  pinElement.style ='left: ' + pinX + 'px; top: ' +  pinY +'px;';
   pinElement.querySelector('img').src =ad.author.avatar;
   pinElement.querySelector('img').alt =ad.offer.title;
-  console.log(pinElement);
   return pinElement;
-}
-//отсовка фрагмента на карте
-var template = document.querySelector('template');
-var map = document.querySelector('.map__pins');
+};
 var advertisements = generateAds();
-var fragment = document.createDocumentFragment();
+//отсовка на карте
+var fragmentAds = document.createDocumentFragment();
+var fragmentPins = document.createDocumentFragment();
 for (var i = 0; i < ADS_DATA.QUANTITY; i++) {
-	fragment.appendChild(getAdTemplate(advertisements[i], template));
-  fragment.appendChild(getPin(advertisements[i], template));
+  fragmentAds.appendChild(getAdTemplate(advertisements[i], template));
+  fragmentPins.appendChild(getPin(advertisements[i], template));
 }
-map.appendChild(fragment);
+map.insertBefore(fragmentAds, mapFilters);
+mapPins.appendChild(fragmentPins);
+
+map.classList.remove('map--faded');
 
 
-document.querySelector('.map').classList.remove('map--faded');
+//поменять название координат
