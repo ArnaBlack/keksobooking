@@ -1,197 +1,98 @@
 'use strict';
 
-var ADS_DATA = {
- QUANTITY: 8,
- TITLES: [
- 'Большая уютная квартира',
- 'Маленькая неуютная квартира',
- 'Огромный прекрасный дворец',
- 'Маленький ужасный дворец',
- 'Красивый гостевой домик',
- 'Некрасивый негостеприимный домик',
- 'Уютное бунгало далеко от моря',
- 'Неуютное бунгало по колено в воде'
- ],
-   TYPES: [
-   'palace',
-   'flat',
-   'house',
-   'bungalo'
-   ],
-  CHECKIN_TIMES: [
-  '12:00',
-  '13:00',
-  '14:00'],
-  CHECKOUT_TIMES: [
-  '12:00',
-  '13:00',
-  '14:00'],
-  FEATURES: [
-  'wifi',
-  'dishwasher',
-  'parking',
-  'washer',
-  'elevator',
-  'conditioner'],
-  xRangeFrom: 300,
-  xRangeTo: 900,
-  yRangeFrom: 130,
-  yRangeTo: 630,
-  priceRangeFrom: 1000,
-  priceRangeTo: 1000000,
-  roomsRangeFrom: 1,
-  roomsRangeTo: 5,
-  guestsRangeFrom: 1,
-  guestsRangeTo: 15,
-  PHOTOS: [
-  'http://o0.github.io/assets/images/tokyo/hotel1.jpg',
-  'http://o0.github.io/assets/images/tokyo/hotel2.jpg',
-  'http://o0.github.io/assets/images/tokyo/hotel3.jpg'
-  ]
+var pinMain = window.render.map.querySelector('.map__pin--main');
+var pinMainWidth = pinMain.offsetWidth;
+var pinMainHeight = pinMain.offsetHeight;
+var defaultPinMainCoords = {
+  x: pinMain.offsetLeft + pinMainWidth / 2,
+  y: pinMain.offsetTop + pinMainHeight
+};
+// флаг для понимание открыта ли карта или нет
+var isOpenMap = false;
+
+ // Определяем размеры карты (понадобятся для ограничения вводимых координат адреса)
+ var mapWidth = window.render.mapPins.clientWidth;
+ var mapHeight = window.render.mapPins.clientHeight;
+var avalibleCoords = {
+  minX: window.render.mapPins.offsetLeft + pinMainWidth,
+  maxX: mapWidth - pinMainWidth,
+  minY: window.render.mapPins.offsetTop + pinMainHeight,
+  maxY: mapHeight  - pinMainHeight
 };
 
-var PIN_SIZE = {
-  WIDTH: 50,
-  HEIGHT: 70
+// проверяем не вышли ли мы за границы карты
+ var setCoords = function (coords) {
+  if (coords.x < avalibleCoords.minX) {
+    coords.x = avalibleCoords.minX;
+  } else if (coords.x > avalibleCoords.maxX) {
+    coords.x = avalibleCoords.maxX;
+  }
+  if (coords.y < avalibleCoords.minY) {
+    coords.y = avalibleCoords.minY;
+  } else if (coords.y > avalibleCoords.maxY) {
+    coords.y = avalibleCoords.maxY;
+  }
+  return coords;
 };
 
-var TYPES_MAP = {
-  palace: 'Дворец',
-  flat: 'Квартира',
-  house: 'Дом',
-  bungalo: 'Бунгало'
+//записываем в поле адрес начальные координаты
+window.form.setAddress(defaultPinMainCoords.x, defaultPinMainCoords.y);
+
+//делаем поля формы недоступными
+window.form.setFormFeildStatus(false);
+//функция показа карты
+var showMap = function() {
+  window.render.map.classList.remove('map--faded');
+  window.form.unlockForm();
+  window.render.renderAdvertisements();
+  window.form.setFormFeildStatus(true);
+  isOpenMap = true;
 };
 
-var template = document.querySelector('template');
-var map = document.querySelector('.map');
-var mapPins = map.querySelector('.map__pins');
-var mapFilters = map.querySelector('.map__filters-container');
-
-//функция генерации случайных значений
-var generateRandomData = function (min, max) {
- return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-//функция перемешивания массива PHOTOS
-var shufflePhotos = function (arr){
-	//копируем массив
-	var copyArr = arr.slice(0);
-
-	for (var i = copyArr.length - 1; i  > 0; i--){
-		var j = Math.floor(Math.random()*(i + 1));
-		var temp = copyArr[j];
-		copyArr[j] = copyArr[i];
-		copyArr[i] = temp;
-	}
-	return copyArr;
-};
-//функция обрезки массива FEATURES
-var cutFeatures = function (arr) {
-	return arr.slice(0, generateRandomData(1,arr.length));
-};
-//функция генерации случайных данных
-var generateAds = function () {
-	var OFFERS= [];
-	for (var i = 0; i < ADS_DATA.QUANTITY; i++) {
-		var x = generateRandomData(0, map.clientWidth + 1);
-		var y = generateRandomData(ADS_DATA.yRangeFrom, ADS_DATA.yRangeTo + 1);
-		OFFERS.push({
-			author: {
-				avatar: 'img/avatars/user' +  (i < 10 ? '0' : '') + (i + 1) + '.png'
-			},
-			offer: {
-				title: ADS_DATA.TITLES[i],
-				address: x + ', ' + y,
-				price: generateRandomData(ADS_DATA.priceRangeFrom, ADS_DATA.priceRangeTo),
-				type: ADS_DATA.TYPES[generateRandomData(0, ADS_DATA.TYPES.length-1)],
-				rooms: generateRandomData(ADS_DATA.roomsRangeFrom, ADS_DATA.roomsRangeTo),
-				guests:generateRandomData(ADS_DATA.guestsRangeFrom, ADS_DATA.guestsRangeTo),
-				checkin: ADS_DATA.CHECKIN_TIMES[generateRandomData(0, ADS_DATA.CHECKIN_TIMES.length-1)],
-				checkout: ADS_DATA.CHECKOUT_TIMES[generateRandomData(0, ADS_DATA.CHECKOUT_TIMES.length-1)],
-				features: cutFeatures(ADS_DATA.FEATURES),
-				description : '',
-				photos: shufflePhotos(ADS_DATA.PHOTOS)
-
-			},
-			location: {
-				x: x,
-				y: y
-			}
-		}
-			)
-		};
-	return OFFERS;
-};
-//отрисовка преимуществ
-var createFeaturesFragment = function (adData, template) {
-  var featuresElements = template.querySelector('.popup__features');
-  var featureItem = template.querySelectorAll('.popup__feature');
-
-  [].forEach.call(featureItem, function (element) {
-    featuresElements.removeChild(element);
-   });
-   for (var i = 0; i < adData.offer.features.length; i++) {
-    var listElement = document.createElement('li');
-    listElement.classList.add('popup__feature');
-    listElement.classList.add('popup__feature--' + adData.offer.features[i]);
-    featuresElements.appendChild(listElement);
+//вешаем событие перетаскивания
+pinMain.addEventListener('mousedown', function(evt) {
+  evt.preventDefault();
+  var startCoords = {
+        x: evt.clientX,
+        y: evt.clientY
+      };
+  var onMouseUp =  function (upEvt) {
+    upEvt.preventDefault();
+    if(!isOpenMap) {
+      showMap();
+    }
+    document.removeEventListener('mouseup', onMouseUp);
+    document.removeEventListener('mousemove', onMouseMove);
   };
-
-  return featuresElements;
-};
-// огтрисовка фото
-var createPhotoFragment = function (adData, template) {
-  var photoElements = template.querySelector('.popup__photos');
-  var photoItem = template.querySelector('.popup__photo');
-
-  photoItem.src = adData.offer.photos[0];
-  for (var i = 1; i < adData.offer.photos.length; i++) {
-  var photoItemClone = photoItem.cloneNode(true);
-  photoItemClone.src = adData.offer.photos[i];
-  photoElements.appendChild(photoItemClone);
-};
-
-return photoElements;
-
-};
-// создание  одного обьявления
-var getAdTemplate = function (ad, template) {
-  var adTemplate = template.content.querySelector('.map__card');
-	var adElement = adTemplate.cloneNode(true);
-	adElement.querySelector('.popup__title').textContent = ad.offer.title;
-	adElement.querySelector('.popup__text--address').textContent = ad.offer.address;
-	adElement.querySelector('.popup__text--price').textContent = ad.offer.price + 'Р/ночь';
-	adElement.querySelector('.popup__type').textContent = TYPES_MAP[ad.offer.type];
-	adElement.querySelector('.popup__text--capacity').textContent = ad.offer.rooms + (ad.offer.rooms > 1 ? ' комнаты' : ' комната') + ' для ' + ad.offer.guests +  (ad.offer.guests > 1 ? ' гостей' : ' гостя');
-	adElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + ad.offer.checkin + ', выезд до ' + ad.offer.checkout;
-  createFeaturesFragment(ad,adElement);
-  createPhotoFragment(ad,adElement);
-  adElement.querySelector('.popup__description').textContent = ad.offer.description;
-  adElement.querySelector('.popup__avatar').src = ad.author.avatar;
-	return adElement;
-};
-//создание одной метки
-var getPin = function (ad, template) {
-  var pinTemplate = template.content.querySelector('.map__pin');
-  var pinElement = pinTemplate.cloneNode(true);
-  var pinX = ad.location.x - PIN_SIZE.WIDTH / 2;
-  var pinY =  ad.location.y  - PIN_SIZE.HEIGHT;
-  pinElement.style ='left: ' + pinX + 'px; top: ' +  pinY +'px;';
-  pinElement.querySelector('img').src =ad.author.avatar;
-  pinElement.querySelector('img').alt =ad.offer.title;
-  return pinElement;
-};
-var advertisements = generateAds();
-//отсовка на карте
-var fragmentAds = document.createDocumentFragment();
-var fragmentPins = document.createDocumentFragment();
-for (var i = 0; i < ADS_DATA.QUANTITY; i++) {
-  fragmentAds.appendChild(getAdTemplate(advertisements[i], template));
-  fragmentPins.appendChild(getPin(advertisements[i], template));
-}
-map.insertBefore(fragmentAds, mapFilters);
-mapPins.appendChild(fragmentPins);
-
-map.classList.remove('map--faded');
+  var onMouseMove = function (moveEvt) {
+    moveEvt.preventDefault();
+    // задаем координаты смещения
+        var shift = {
+          x: startCoords.x - moveEvt.clientX,
+          y: startCoords.y - moveEvt.clientY
+        };
+        //перезаписываем начальные координаты
+        startCoords = {
+          x: moveEvt.clientX,
+          y: moveEvt.clientY
+        };
+        var newCoords = {
+          y: pinMain.offsetTop - shift.y,
+          x: pinMain.offsetLeft  - shift.x
+        };
+          newCoords = setCoords(newCoords);
+          // перемещаем метку на карте
+          pinMain.style.top = (newCoords.y) + 'px';
+          pinMain.style.left = (newCoords.x) + 'px';
+          // запонимаем новые коррдинаты для вывода в поле адреса
+          var shiftedPinMainCoords = {
+            x: pinMain.offsetLeft - shift.x + pinMainWidth / 2,
+            y: pinMain.offsetTop - shift.y + pinMainHeight
+          };
+          window.form.setAddress(shiftedPinMainCoords.x, shiftedPinMainCoords.y);
+  };
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+});
 
 
-//поменять название координат
