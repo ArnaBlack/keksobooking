@@ -186,12 +186,19 @@
 
     //отрисовка похожих объявлений
     var advertisements = generateAds();
-
+    var getCloseButton = function() {
+      var closeCardButton = map.querySelector('.popup__close');
+      closeCardButton.addEventListener('click', function(evt) {
+        evt.preventDefault();
+        window.pin.closeCard();
+      });
+    }
     //функця отрисовки одной карточки
     var renderCard = function(index) {
       var fragmentAds = document.createDocumentFragment();
       fragmentAds.appendChild(getOneAd(advertisements[index], template));
       map.insertBefore(fragmentAds, mapFilters);
+      getCloseButton();
     };
     var renderAdvertisements = function() {
     // отрисовка на карте пинов и одного обьявления

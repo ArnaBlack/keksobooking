@@ -1,5 +1,5 @@
 'use strict';
-
+(function() {
 var pinMain = window.render.map.querySelector('.map__pin--main');
 var pinMainWidth = pinMain.offsetWidth;
 var pinMainHeight = pinMain.offsetHeight;
@@ -13,12 +13,12 @@ var isOpenMap = false;
  // Определяем размеры карты (понадобятся для ограничения вводимых координат адреса)
  var mapWidth = window.render.mapPins.clientWidth;
  var mapHeight = window.render.mapPins.clientHeight;
-var avalibleCoords = {
-  minX: window.render.mapPins.offsetLeft + pinMainWidth,
-  maxX: mapWidth - pinMainWidth,
-  minY: window.render.mapPins.offsetTop + pinMainHeight,
-  maxY: mapHeight  - pinMainHeight
-};
+  var avalibleCoords = {
+    minX: window.render.mapPins.offsetLeft + pinMainWidth,
+    maxX: mapWidth - pinMainWidth,
+    minY: window.render.mapPins.offsetTop + pinMainHeight,
+    maxY: mapHeight  - pinMainHeight
+  };
 
 // проверяем не вышли ли мы за границы карты
  var setCoords = function (coords) {
@@ -56,7 +56,7 @@ pinMain.addEventListener('mousedown', function(evt) {
         x: evt.clientX,
         y: evt.clientY
       };
-  var onMouseUp =  function (upEvt) {
+  var onMouseUp =  function(upEvt) {
     upEvt.preventDefault();
     if(!isOpenMap) {
       showMap();
@@ -64,7 +64,7 @@ pinMain.addEventListener('mousedown', function(evt) {
     document.removeEventListener('mouseup', onMouseUp);
     document.removeEventListener('mousemove', onMouseMove);
   };
-  var onMouseMove = function (moveEvt) {
+  var onMouseMove = function(moveEvt) {
     moveEvt.preventDefault();
     // задаем координаты смещения
         var shift = {
@@ -94,5 +94,6 @@ pinMain.addEventListener('mousedown', function(evt) {
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
 });
+})();
 
 

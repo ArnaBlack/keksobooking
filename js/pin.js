@@ -1,3 +1,5 @@
+'use strict';
+(function() {
 //добавляем событие клика на отрисованные пины
 var mapPins = document.querySelector('.map__pins');
 mapPins.addEventListener('click', function(evt) {
@@ -7,15 +9,11 @@ mapPins.addEventListener('click', function(evt) {
       var prevPin = mapPins.querySelector('.map__pin--active');
       //если предыдущий элемент существует с таким классом
       if (prevPin !== null) {
-        prevPin.classList.remove('map__pin--active');
+        closeCard(prevPin);
       }
       target.classList.add('map__pin--active');
-      //находим тукущую отрисованную карточку
-      var currentCard = window.render.map.querySelector('.map__card');
       //получаем индекс тукущего пина
       var index = target.getAttribute('data-target');
-      //удаляем предыдущую карточку
-      window.render.map.removeChild(currentCard);
       //отрисовываем текущую
       window.render.renderCard(index);
       return;
@@ -24,3 +22,15 @@ mapPins.addEventListener('click', function(evt) {
   }
 
 });
+var closeCard = function(prevPin) {
+   //находим тукущую отрисованную карточку
+   var currentCard = window.render.map.querySelector('.map__card');
+   //удаляем предыдущую карточку
+   window.render.map.removeChild(currentCard);
+
+   prevPin.classList.remove('map__pin--active');
+};
+window.pin = {
+  closeCard: closeCard
+};
+})();
